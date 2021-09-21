@@ -19,7 +19,7 @@ const sql = require('./sql');
 
 // 引入json模块
 const json = require('./json');
-const { MethodNotAllowed } = require('http-errors');
+// const { MethodNotAllowed } = require('http-errors');
 
 // 使用连接词，提升性能
 
@@ -29,7 +29,7 @@ const userData = {
     add: function (req, res, next) {
         pool.getConnection((err, connection) => {
             const param = req.query || req.params;
-            connection.query(sql.insert, [param.id], (err, result) => {
+            connection.query(sql.insert, [param.id,param.age], (err, result) => {
                 if (result) {
                     result = 'add'
                 }
@@ -72,7 +72,44 @@ const userData = {
             });
         });
     },
+    queryById: (req, res, next) => {
+        const id = + req.query.id;
+
+        pool.getConnection((err, connection) => {
+            connection.query(sql.queryById, id, (err, result) => {
+                if (result != '') {
+                    const _result = result;
+                    result = {
+                        result: 'select',
+                        data: _result
+                    }
+                } else {
+                    result = undefined;
+                }
+
+                json(res, result);
+                connection.release();
+            })
+        })
+    },
+    queryAll: (req, res, next) => {
+        pool.getConnection((err, connection) => {
+            connection.query(sql.queryAll, (err, result) => {
+                if (result != '') {
+                    const _result = result;
+                    result = {
+                        result: 'selectall',
+                        data: _result
+                    }
+                } else {
+                    result = undefined;
+                }
+                json(res, result);
+                connection.release();
+            })
+        })
+    }
 }
 
-MethodNotAllowed.exports = userData;
+module.exports = userData;
 
