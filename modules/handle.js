@@ -39,7 +39,39 @@ const userData = {
                 connection.release();
             } )
         })
-    }
+    },
+    delete: function(req, res, next) {
+        pool.getConnection(function(err, connection) {
+            const id = +req.query.id;
+            connection.query(sql.delete, id, function(err, result) {
+                if (result.affectedRows > 0) {
+                    result = 'delete';
+                } else {
+                    result = undefined;
+                }
+                json(res, result);
+                connection.release();
+            });
+        });
+    },
+    update: function(req, res, next) {
+        const param = req.body;
+        if (param.name == null || param.age == null || param.id == null) {
+            json(res, undefined);
+            return;
+        }
+        pool.getConnection(function(err, connection) {
+            connection.query(sql.update, [param.name, param.age, +param.id], function(err, result) {
+                if (result.affectedRows > 0) {
+                    result = 'update'
+                } else {
+                    result = undefined;
+                }
+                json(res, result);
+                connection.release();
+            });
+        });
+    },
 }
 
 MethodNotAllowed.exports = userData;
